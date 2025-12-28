@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Logistics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+
+    <div class="flex h-screen overflow-hidden">
+
+        {% if user.is_authenticated %}
+        <!-- Sidebar -->
+        <div class="w-64 bg-green-900 text-white hidden md:block flex-shrink-0">
+            <div class="p-4 font-bold text-xl border-b border-green-800">
+                Smart Logistics
+            </div>
+            <nav class="mt-4">
+                <a href="{% url 'dashboard' %}"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-800 hover:text-white">
+                    Dashboard
+                </a>
+                {% if user.role == 'ADMIN' %}
+                <a href="{% url 'admin_drivers' %}"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-800 hover:text-white">
+                    Drivers
+                </a>
+                <a href="{% url 'admin_warehouses' %}"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-800 hover:text-white">
+                    Ware Houses
+                </a>
+                <a href="{% url 'admin_users' %}"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-800 hover:text-white">
+                    Users
+                </a>
+                <a href="{% url 'admin_deliveries' %}"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-800 hover:text-white">
+                    Deliveries
+                </a>
+                <a href="{% url 'admin_feedback' %}"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-800 hover:text-white">
+                    Feedback
+                </a>
+                <a href="{% url 'admin_settings' %}"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-800 hover:text-white">
+                    Settings
+                </a>
+                <a href="/admin/" target="_blank"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-black hover:text-white mt-4 border-t border-green-800 pt-4 text-sm font-bold text-gray-300">
+                    <span class="flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                            </path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        Django Admin
+                    </span>
+                </a>
+                {% endif %}
+                {% if user.role == 'CLIENT' %}
+                <a href="{% url 'client_shipments' %}"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-800 hover:text-white">
+                    My Shipments
+                </a>
+                {% endif %}
+                {% if user.role == 'DRIVER' %}
+                <a href="{% url 'driver_tasks' %}"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-800 hover:text-white">
+                    My Tasks
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+
+        <!-- Content Area -->
+        <div class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+
+            <!-- Top Navbar -->
+            <header class="bg-green-900 text-white shadow-md py-4 px-6 flex justify-between items-center w-full">
+                <div class="flex items-center">
+                    <a href="{% url 'dashboard' %}" class="text-xl font-bold">Smart Logistic System</a>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    {% if user.is_authenticated %}
+                    <span>{{ user.username }} ({{ user.get_role_display }})</span>
+                    <form action="{% url 'logout' %}" method="post" class="inline">
+                        {% csrf_token %}
+                        <button type="submit"
+                            class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm">Logout</button>
+                    </form>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="hover:underline">Login</a>
+                    <a href="{% url 'register' %}"
+                        class="bg-white text-green-900 font-bold px-3 py-1 rounded hover:bg-gray-200">Register</a>
+                    {% endif %}
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="w-full flex-grow p-6">
+                {% if messages %}
+                {% for message in messages %}
+                <div
+                    class="p-4 mb-4 rounded {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </main>
+
+        </div>
+    </div>
+
+</body>
+
+</html>

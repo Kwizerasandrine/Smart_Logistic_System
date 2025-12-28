@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Logistics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .military-green {
+            background-color: #14532d;
+        }
+
+        
+    </style>
+</head>
+
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+
+    <div class="flex h-screen overflow-hidden">
+
+        {% if user.is_authenticated %}
+        
+        <div class="w-64 bg-green-900 text-white hidden md:block flex-shrink-0">
+            <div class="p-4 font-bold text-xl border-b border-green-800">
+                Logistics Admin
+            </div>
+            <nav class="mt-4">
+                <a href="{% url 'dashboard' %}"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-800 hover:text-white">
+                    Dashboard
+                </a>
+                {% if user.role == 'ADMIN' %}
+                <a href="#"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-800 hover:text-white">
+                    Manage Users
+                </a>
+                <a href="#"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-800 hover:text-white">
+                    Manage Shipments
+                </a>
+                {% endif %}
+                {% if user.role == 'CLIENT' %}
+                <a href="#"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-800 hover:text-white">
+                    My Shipments
+                </a>
+                {% endif %}
+                {% if user.role == 'DRIVER' %}
+                <a href="#"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-800 hover:text-white">
+                    My Tasks
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+
+        
+        <div class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+
+            
+            <header class="bg-green-900 text-white shadow-md py-4 px-6 flex justify-between items-center w-full">
+                <div class="flex items-center">
+                    <a href="{% url 'dashboard' %}" class="text-xl font-bold">LogisticsSys</a>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    {% if user.is_authenticated %}
+                    <span>{{ user.username }} ({{ user.get_role_display }})</span>
+                    <form action="{% url 'logout' %}" method="post" class="inline">
+                        {% csrf_token %}
+                        <button type="submit"
+                            class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm">Logout</button>
+                    </form>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="hover:underline">Login</a>
+                    <a href="{% url 'register' %}"
+                        class="bg-white text-green-900 font-bold px-3 py-1 rounded hover:bg-gray-200">Register</a>
+                    {% endif %}
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="w-full flex-grow p-6">
+                {% if messages %}
+                {% for message in messages %}
+                <div
+                    class="p-4 mb-4 rounded {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </main>
+
+        </div>
+    </div>
+
+</body>
+
+</html>

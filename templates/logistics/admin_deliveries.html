@@ -1,0 +1,74 @@
+{% extends 'base_v2.html' %}
+
+{% block content %}
+<div class="mb-8 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-800">{{ title|default:"Deliveries Management" }}</h1>
+    <button class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg shadow font-bold transition">Add
+        Shipment</button>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+    <table class="w-full text-left border-collapse">
+        <thead class="bg-gray-50 text-gray-700 uppercase text-xs font-bold border-b">
+            <tr>
+                <th class="py-4 px-6">Tracking No</th>
+                <th class="py-4 px-6">Sender</th>
+                <th class="py-4 px-6">Recipient</th>
+                <th class="py-4 px-6">Driver</th>
+                <th class="py-4 px-6">Status</th>
+                <th class="py-4 px-6">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="text-gray-600 text-sm divide-y divide-gray-50">
+            {% for shipment in shipments %}
+            <tr class="hover:bg-gray-50/50 transition duration-150">
+                <td class="py-4 px-6 font-bold text-gray-900">{{ shipment.tracking_number }}</td>
+                <td class="py-4 px-6">{{ shipment.sender.username }}</td>
+                <td class="py-4 px-6">
+                    <p class="font-medium text-gray-800">{{ shipment.recipient_name }}</p>
+                    <p class="text-[11px] text-gray-500">{{ shipment.recipient_address|truncatechars:30 }}</p>
+                </td>
+                <td class="py-4 px-6">
+                    {% if shipment.vehicle.driver %}
+                    {{ shipment.vehicle.driver.username }}
+                    {% else %}
+                    <span class="text-gray-400 italic">Unassigned</span>
+                    {% endif %}
+                </td>
+                <td class="py-4 px-6 text-center">
+                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
+                        {% if shipment.status == 'DELIVERED' %}bg-green-100 text-green-700
+                        {% elif shipment.status == 'PENDING' %}bg-blue-100 text-blue-700
+                        {% elif shipment.status == 'IN_TRANSIT' %}bg-orange-100 text-orange-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ shipment.get_status_display }}
+                    </span>
+                </td>
+                <td class="py-4 px-6">
+                    <div class="flex space-x-3">
+                        <button class="text-blue-500 hover:text-blue-700"><svg class="w-5 h-5" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                </path>
+                            </svg></button>
+                        <button class="text-red-500 hover:text-red-700"><svg class="w-5 h-5" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                </path>
+                            </svg></button>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center py-12 text-gray-400 font-medium">No shipments found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
