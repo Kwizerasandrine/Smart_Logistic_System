@@ -74,8 +74,7 @@
                     <span class="font-bold text-lg">{{ shipment.tracking_number }}</span>
                     <p class="text-gray-600">To: {{ shipment.recipient_address }} ({{ shipment.recipient_name }})</p>
                 </div>
-                <span class="px-3 py-1 rounded bg-yellow-200 text-yellow-800 text-sm">{{ shipment.get_status_display
-                    }}</span>
+                <span class="px-3 py-1 rounded bg-yellow-200 text-yellow-800 text-sm">{{ shipment.get_status_display }}</span>
             </div>
         </li>
         {% endfor %}

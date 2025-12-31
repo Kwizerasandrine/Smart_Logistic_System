@@ -16,7 +16,7 @@
                 id="{{ field.id_for_label }}" type="{{ field.field.widget.input_type }}" name="{{ field.name }}" {% if
                 field.value %}value="{{ field.value }}" {% endif %}>
             {% if field.help_text %}
-            <p class="text-gray-600 text-xs italic">{{ field.help_text }}</p>
+            <p class="text-red-600 font-bold text-xs italic">{{ field.help_text }}</p>
             {% endif %}
         </div>
         {% endfor %}

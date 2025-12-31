@@ -5,9 +5,10 @@ class User(AbstractUser):
     ROLE_CHOICES = (
         ('CLIENT', 'Client'),
         ('DRIVER', 'Driver'),
+        ('DISPATCHER', 'Dispatcher'),
         ('ADMIN', 'Admin'),
     )
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='CLIENT')
+    role = models.CharField(max_length=15, choices=ROLE_CHOICES, default='CLIENT')
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
 

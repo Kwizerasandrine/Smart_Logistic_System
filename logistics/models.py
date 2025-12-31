@@ -38,3 +38,23 @@ class Shipment(models.Model):
 
     def __str__(self):
         return f"Shipment {self.tracking_number} - {self.status}"
+
+class Warehouse(models.Model):
+    STATUS_CHOICES = (
+        ('RUNNING', 'Running'),
+        ('CLOSED', 'Closed'),
+    )
+    AVAILABILITY_CHOICES = (
+        ('ACTIVE', 'Active'),
+        ('AVAILABLE', 'Available'),
+        ('FULL', 'Full'),
+    )
+    
+    location = models.CharField(max_length=100)
+    storage_capacity = models.CharField(max_length=50, help_text="e.g. 500,000kg")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='RUNNING')
+    availability = models.CharField(max_length=15, choices=AVAILABILITY_CHOICES, default='AVAILABLE')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.location} - {self.status}"

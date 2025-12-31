@@ -1,0 +1,87 @@
+{% extends 'base_v2.html' %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Add New User</h2>
+        <p class="text-gray-500">Create a new account for local staff, drivers, or clients.</p>
+    </div>
+
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for field in form %}
+            <div class="space-y-2">
+                <label class="block text-sm font-bold text-gray-700" for="{{ field.id_for_label }}">
+                    {{ field.label }}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                <div class="text-red-500 text-xs mt-1">
+                    {{ field.errors }}
+                </div>
+                {% endif %}
+                {% if field.help_text %}
+                {% if field.name == 'password' or field.name == 'password1' %}
+                <ul class="text-xs italic font-bold mt-1 space-y-1">
+                    <li id="req-similarity" class="text-red-600 trans-colors transition-colors duration-200">• Your
+                        password can’t be too similar to your other personal information.</li>
+                    <li id="req-length" class="text-red-600 trans-colors transition-colors duration-200">• Your password
+                        must contain at least 8 characters.</li>
+                    <li id="req-common" class="text-red-600 trans-colors transition-colors duration-200">• Your password
+                        can’t be a commonly used password.</li>
+                    <li id="req-numeric" class="text-red-600 trans-colors transition-colors duration-200">• Your
+                        password can’t be entirely numeric.</li>
+                </ul>
+                {% else %}
+                <p class="text-red-600 font-bold text-xs italic">{{ field.help_text }}</p>
+                {% endif %}
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="flex items-center justify-end space-x-4 pt-4 border-t">
+            <a href="{% url 'admin_users' %}" class="px-6 py-2 text-gray-600 hover:text-gray-800 transition">Cancel</a>
+            <button type="submit"
+                class="bg-green-900 hover:bg-green-800 text-white font-bold py-2 px-8 rounded-lg shadow-sm transition">
+                Create User
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const passwordInput = document.querySelector('input[type="password"]');
+        const usernameInput = document.querySelector('input[name="username"]');
+
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function () {
+                const val = this.value;
+                const username = usernameInput ? usernameInput.value.toLowerCase() : '';
+
+                updateReq('req-length', val.length >= 8);
+                updateReq('req-numeric', val.length > 0 && !/^\d+$/.test(val));
+                updateReq('req-similarity', val.length > 0 && (username === '' || !val.toLowerCase().includes(username)));
+                updateReq('req-common', val.length > 0 &&
+                    !['password', '12345678', 'qwertyuiop', 'admin123'].includes(val.toLowerCase()));
+            });
+        }
+
+        function updateReq(id, isValid) {
+            const el = document.getElementById(id);
+            if (el) {
+                if (isValid) {
+                    el.classList.remove('text-red-600');
+                    el.classList.add('text-green-600');
+                } else {
+                    el.classList.remove('text-green-600');
+                    el.classList.add('text-red-600');
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
