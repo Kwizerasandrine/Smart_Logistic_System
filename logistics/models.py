@@ -30,6 +30,7 @@ class Shipment(models.Model):
     recipient_name = models.CharField(max_length=100)
     recipient_address = models.TextField()
     recipient_contact = models.CharField(max_length=15)
+    weight = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Weight in kg")
     
     vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True, blank=True, related_name='shipments')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
