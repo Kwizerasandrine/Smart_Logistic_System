@@ -98,6 +98,13 @@
                 {% endif %}
                 {% endif %}
                 {% if user.role == 'CLIENT' %}
+                <a href="{% url 'create_shipment' %}"
+                    class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-800 hover:text-white font-bold text-orange-400 flex items-center">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    + Create Shipment
+                </a>
                 <a href="{% url 'client_shipments' %}"
                     class="block py-2.5 px-4 rounded transition duration-200 hover:bg-green-800 hover:text-white">
                     My Shipments

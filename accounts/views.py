@@ -7,7 +7,7 @@ def register(request):
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            user.role = 'CLIENT'
+            user.role = form.cleaned_data.get('role', 'CLIENT')
             user.save()
             login(request, user)
             return redirect('dashboard') # Redirect to dashboard after signup

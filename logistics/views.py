@@ -4,7 +4,9 @@ from .models import Shipment, Vehicle, Warehouse
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 from accounts.forms import UserRegistrationForm, UserEditForm, AdminUserCreationForm
+from .forms import ShipmentForm
 from django.shortcuts import get_object_or_404
+import uuid
 
 def is_admin(user):
     return user.is_authenticated and user.role == 'ADMIN'
@@ -62,6 +64,29 @@ def dashboard(request):
         context['recent_users'] = User.objects.all().order_by('-date_joined')[:5]
         
     return render(request, 'logistics/dashboard_v2.html', context)
+
+@login_required
+def create_shipment(request):
+    if request.user.role != 'CLIENT':
+        messages.error(request, 'Only clients can create shipments.')
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        form = ShipmentForm(request.POST)
+        if form.is_valid():
+            shipment = form.save(commit=False)
+            shipment.sender = request.user
+            # Generate unique tracking number
+            tracking_number = f"SLS-{str(uuid.uuid4())[:8].upper()}"
+            shipment.tracking_number = tracking_number
+            shipment.status = 'PENDING'
+            shipment.save()
+            messages.success(request, f'Shipment created successfully! Your tracking number is: {tracking_number}')
+            return redirect('client_shipments')
+    else:
+        form = ShipmentForm()
+    
+    return render(request, 'logistics/create_shipment.html', {'form': form})
 
 @user_passes_test(is_dispatcher)
 def admin_drivers(request):
