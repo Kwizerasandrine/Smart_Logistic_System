@@ -3,8 +3,8 @@
 {% block content %}
 <div class="mb-8 flex justify-between items-center">
     <h1 class="text-2xl font-bold text-gray-800">{{ title|default:"Deliveries Management" }}</h1>
-    <button class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg shadow font-bold transition">Add
-        Shipment</button>
+    <a href="{% url 'create_shipment' %}" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg shadow font-bold transition inline-block">Add
+        Shipment</a>
 </div>
 
 <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
