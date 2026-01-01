@@ -1,0 +1,87 @@
+{% extends 'base_v2.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Edit Shipment</h1>
+            <p class="text-gray-600 mb-2">Tracking #: <span class="font-bold text-blue-600">{{ shipment.tracking_number }}</span></p>
+            <p class="text-gray-600 mb-6">Status: <span class="font-bold text-orange-600">{{ shipment.get_status_display }}</span></p>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Recipient Name -->
+                <div>
+                    <label for="{{ form.recipient_name.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                        Recipient Name
+                    </label>
+                    {{ form.recipient_name }}
+                    {% if form.recipient_name.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.recipient_name.errors }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Contact Number -->
+                <div>
+                    <label for="{{ form.recipient_contact.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                        Contact Number
+                    </label>
+                    {{ form.recipient_contact }}
+                    {% if form.recipient_contact.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.recipient_contact.errors }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Weight -->
+                <div>
+                    <label for="{{ form.weight.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                        Weight (kg)
+                    </label>
+                    {{ form.weight }}
+                    {% if form.weight.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.weight.errors }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Delivery Address -->
+                <div>
+                    <label for="{{ form.recipient_address.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                        Delivery Address
+                    </label>
+                    {{ form.recipient_address }}
+                    {% if form.recipient_address.errors %}
+                        <p class="text-red-500 text-sm mt-1">{{ form.recipient_address.errors }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Info Box -->
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
+                    <p class="text-gray-700 text-sm">
+                        <strong>ℹ️ Note:</strong> You can only edit shipments that are still pending. Once a shipment is in transit or delivered, changes are not allowed.
+                    </p>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200">
+                        Save Changes
+                    </button>
+                    <a href="{% url 'client_shipments' %}" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-4 rounded-lg transition duration-200 text-center">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -88,6 +88,53 @@ def create_shipment(request):
     
     return render(request, 'logistics/create_shipment.html', {'form': form})
 
+@login_required
+def edit_shipment(request, pk):
+    shipment = get_object_or_404(Shipment, pk=pk)
+    
+    # Only allow the sender to edit
+    if shipment.sender != request.user:
+        messages.error(request, 'You can only edit your own shipments.')
+        return redirect('client_shipments')
+    
+    # Only allow editing pending shipments
+    if shipment.status != 'PENDING':
+        messages.error(request, f'Cannot edit {shipment.get_status_display().lower()} shipments.')
+        return redirect('client_shipments')
+    
+    if request.method == 'POST':
+        form = ShipmentForm(request.POST, instance=shipment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Shipment {shipment.tracking_number} updated successfully!')
+            return redirect('client_shipments')
+    else:
+        form = ShipmentForm(instance=shipment)
+    
+    return render(request, 'logistics/edit_shipment.html', {'form': form, 'shipment': shipment})
+
+@login_required
+def delete_shipment(request, pk):
+    shipment = get_object_or_404(Shipment, pk=pk)
+    
+    # Only allow the sender to delete
+    if shipment.sender != request.user:
+        messages.error(request, 'You can only delete your own shipments.')
+        return redirect('client_shipments')
+    
+    # Only allow deleting pending shipments
+    if shipment.status != 'PENDING':
+        messages.error(request, f'Cannot delete {shipment.get_status_display().lower()} shipments.')
+        return redirect('client_shipments')
+    
+    if request.method == 'POST':
+        tracking_number = shipment.tracking_number
+        shipment.delete()
+        messages.success(request, f'Shipment {tracking_number} has been deleted.')
+        return redirect('client_shipments')
+    
+    return render(request, 'logistics/confirm_delete_shipment.html', {'shipment': shipment})
+
 @user_passes_test(is_dispatcher)
 def admin_drivers(request):
     User = get_user_model()
