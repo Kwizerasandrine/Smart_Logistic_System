@@ -73,15 +73,33 @@
     </div>
 
     <div class="flex items-center space-x-4">
-        <button class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded shadow text-sm font-bold" onclick="location.href='{% url 'create_shipment' %}';">Add
-            New</button>
+        {% if user.role == 'CLIENT' %}
+        <button class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded shadow text-sm font-bold transition" 
+                onclick="location.href='{% url 'create_shipment' %}';">
+            Add New
+        </button>
+        {% elif user.role == 'DRIVER' or user.role == 'ADMIN' %}
+        <button class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded shadow text-sm font-bold transition">
+            Add New
+        </button>
+        {% endif %}
+        
         <div class="relative">
-            <input type="text" placeholder="Search"
-                class="border rounded-full pl-4 pr-10 py-2 focus:outline-none focus:ring-1 focus:ring-red-500 w-64">
-            <svg class="w-5 h-5 text-gray-400 absolute right-3 top-2.5" fill="none" stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            <input 
+                type="text" 
+                id="searchInput"
+                placeholder="Search anything..." 
+                class="border rounded-full pl-4 pr-10 py-2 focus:outline-none focus:ring-1 focus:ring-red-500 w-64 transition">
+            
+            <!-- Search Icon -->
+            <svg class="w-5 h-5 text-gray-400 absolute right-3 top-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            
+            <!-- Loading spinner (hidden by default) -->
+            <svg id="searchSpinner" class="animate-spin w-5 h-5 text-red-500 absolute right-3 top-2.5 hidden" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
         </div>
     </div>
@@ -693,24 +711,198 @@
 
 {% endif %}
 
+<!-- Replace ALL the script tags at the bottom of your dashboard.html with this single unified script -->
+
 <script>
-    function filterShipments(status, button) {
-        fetch(`{% url 'filter_shipments' %}?status=${status}`)
-            .then(response => response.json())
-            .then(data => {
-                // Update table body
-                document.querySelector('tbody').innerHTML = data.html;
-                
-                // Update active button styling
-                document.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.classList.remove('bg-red-800', 'text-white');
-                    btn.classList.add('bg-white', 'border', 'text-gray-600', 'hover:bg-gray-50');
-                });
-                button.classList.remove('bg-white', 'border', 'text-gray-600', 'hover:bg-gray-50');
-                button.classList.add('bg-red-800', 'text-white');
-            })
-            .catch(error => console.error('Error:', error));
+let searchTimeout;
+let currentStatus = 'all';
+let searchInput;
+let searchSpinner;
+let searchIcon;
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Get elements after DOM is loaded
+    searchInput = document.getElementById('searchInput');
+    searchSpinner = document.getElementById('searchSpinner');
+    searchIcon = document.querySelector('.pointer-events-none');
+    
+    // Only add search listeners if search input exists
+    if (searchInput) {
+        console.log('Search input found, attaching listeners');
+        
+        // Real-time search with debounce
+        searchInput.addEventListener('input', function() {
+            console.log('Search input changed:', this.value);
+            clearTimeout(searchTimeout);
+            
+            // Show loading spinner
+            if (searchSpinner) searchSpinner.classList.remove('hidden');
+            if (searchIcon) searchIcon.classList.add('hidden');
+            
+            // Wait 500ms after user stops typing
+            searchTimeout = setTimeout(() => {
+                performSearch();
+            }, 500);
+        });
+        
+        // Also search on Enter key
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                clearTimeout(searchTimeout);
+                performSearch();
+            }
+        });
+    } else {
+        console.warn('Search input element not found');
     }
-    </script>
+});
+
+function performSearch() {
+    console.log('performSearch called');
+    const status = currentStatus || 'all';
+    const searchValue = searchInput ? searchInput.value.trim() : '';
+    
+    // Show loading spinner
+    if (searchSpinner) searchSpinner.classList.remove('hidden');
+    if (searchIcon) searchIcon.classList.add('hidden');
+    
+    // Build URL with status and search query
+    let url = `/filter-shipments/?status=${status}`;
+    if (searchValue) {
+        url += `&search=${encodeURIComponent(searchValue)}`;
+    }
+    console.log('Fetching from:', url);
+    
+    fetch(url)
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) throw new Error('Network error: ' + response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Data received:', data);
+            // Update table body
+            const tbody = document.querySelector('tbody');
+            if (tbody) {
+                tbody.innerHTML = data.html;
+                console.log('Table updated');
+            }
+            
+            // Hide spinner, show search icon
+            if (searchSpinner) searchSpinner.classList.add('hidden');
+            if (searchIcon) searchIcon.classList.remove('hidden');
+            
+            // Add highlight effect
+            if (tbody) {
+                tbody.classList.add('animate-fadeIn');
+                setTimeout(() => tbody.classList.remove('animate-fadeIn'), 300);
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            if (searchSpinner) searchSpinner.classList.add('hidden');
+            if (searchIcon) searchIcon.classList.remove('hidden');
+            
+            // Show error message
+            const tbody = document.querySelector('tbody');
+            if (tbody) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="text-center py-8">
+                            <p class="text-red-600 font-medium">Error loading results. Please try again.</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        });
+}
+
+// Unified filter function that works with both inline onclick and button reference
+function filterShipments(status, button) {
+    currentStatus = status;
+    
+    // Show loading spinner
+    if (searchSpinner) searchSpinner.classList.remove('hidden');
+    if (searchIcon) searchIcon.classList.add('hidden');
+    
+    // Clear search input when filtering
+    if (searchInput) searchInput.value = '';
+    
+    const url = `/filter-shipments/?status=${status}`;
+    
+    fetch(url)
+        .then(response => {
+            if (!response.ok) throw new Error('Network error');
+            return response.json();
+        })
+        .then(data => {
+            // Update table body
+            const tbody = document.querySelector('tbody');
+            if (tbody) {
+                tbody.innerHTML = data.html;
+            }
+            
+            // Hide spinner, show search icon
+            if (searchSpinner) searchSpinner.classList.add('hidden');
+            if (searchIcon) searchIcon.classList.remove('hidden');
+            
+            // Add highlight effect
+            if (tbody) {
+                tbody.classList.add('animate-fadeIn');
+                setTimeout(() => tbody.classList.remove('animate-fadeIn'), 300);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (searchSpinner) searchSpinner.classList.add('hidden');
+            if (searchIcon) searchIcon.classList.remove('hidden');
+        });
+    
+    // Update button styling - try both methods to cover all cases
+    const allButtons = document.querySelectorAll('.filter-btn, [onclick*="filterShipments"]');
+    allButtons.forEach(btn => {
+        btn.classList.remove('bg-red-800', 'text-white');
+        btn.classList.add('bg-white', 'border', 'text-gray-600');
+    });
+    
+    // Highlight the clicked button
+    if (button) {
+        button.classList.remove('bg-white', 'border', 'text-gray-600', 'hover:bg-gray-50');
+        button.classList.add('bg-red-800', 'text-white');
+    }
+}
+
+function updateShipmentCount(count) {
+    // Try to find the "All" button with multiple selectors
+    const allButton = document.querySelector('[data-filter="all"], [onclick*="filterShipments(\'all\'"]');
+    if (allButton) {
+        const currentText = allButton.textContent;
+        const newText = currentText.replace(/\d+/, count);
+        allButton.textContent = newText;
+    }
+}
+
+// Optional: Clear search button
+function clearSearch() {
+    if (searchInput) {
+        searchInput.value = '';
+        performSearch();
+        searchInput.focus();
+    }
+}
+</script>
+
+<style>
+@keyframes fadeIn {
+    from { opacity: 0.5; }
+    to { opacity: 1; }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.3s ease-in;
+}
+</style>
 
 {% endblock %}

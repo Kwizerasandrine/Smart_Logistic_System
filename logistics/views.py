@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 import uuid
 from django.http import JsonResponse
 from django.template.loader import render_to_string
+from django.db.models import Q
 
 def is_admin(user):
     return user.is_authenticated and user.role == 'ADMIN'
@@ -256,6 +257,7 @@ def delete_user(request, pk):
 @login_required
 def filter_shipments(request):
     status_filter = request.GET.get('status', 'all')
+    search_query = request.GET.get('search', '').strip()
     user = request.user
     
     if user.role == 'CLIENT':
@@ -268,10 +270,91 @@ def filter_shipments(request):
     if status_filter != 'all':
         shipments = shipments.filter(status=status_filter.upper())
     
+    # Apply search filter if search query provided
+    if search_query:
+        shipments = shipments.filter(
+            Q(tracking_number__icontains=search_query) |
+            Q(recipient_name__icontains=search_query) |
+            Q(recipient_address__icontains=search_query) |
+            Q(sender__first_name__icontains=search_query) |
+            Q(sender__last_name__icontains=search_query) |
+            Q(status__icontains=search_query)
+        )
+    
     # Render table rows only
     html = render_to_string('partials/shipment_rows.html', {'shipments': shipments, 'user': user})
     
     return JsonResponse({
         'html': html,
         'count': shipments.count()
+    })
+
+
+
+@login_required
+def search_shipments(request):
+    user = request.user
+    search_query = request.GET.get('search', '').strip()
+    status_filter = request.GET.get('status', 'all')
+    
+    # Base queryset based on user role
+    if user.role == 'CLIENT':
+        shipments = Shipment.objects.filter(sender=user).select_related('sender', 'vehicle__driver')
+    elif user.role == 'DRIVER':
+        shipments = Shipment.objects.filter(vehicle__driver=user).select_related('sender', 'vehicle__driver')
+    elif user.role == 'ADMIN':
+        shipments = Shipment.objects.all().select_related('sender', 'vehicle__driver')
+    else:
+        shipments = Shipment.objects.none()
+    
+    # Apply comprehensive search across all fields
+    if search_query:
+        query = (
+            Q(tracking_number__icontains=search_query) |           # Case No
+            Q(recipient_name__icontains=search_query) |            # Recipient
+            Q(recipient_address__icontains=search_query) |         # Recipient Address / To
+            Q(sender__username__icontains=search_query) |          # Sender/Client username
+            Q(sender__first_name__icontains=search_query) |        # Sender first name
+            Q(sender__last_name__icontains=search_query) |         # Sender last name
+            Q(sender__email__icontains=search_query) |             # Sender email
+            Q(status__icontains=search_query)                      # Status
+        )
+        # Only add description if the field exists
+        try:
+            query = query | Q(description__icontains=search_query)
+        except:
+            pass
+            
+        shipments = shipments.filter(query).distinct()
+    
+    # Apply status filter
+    if status_filter != 'all':
+        shipments = shipments.filter(status=status_filter.upper())
+    
+    # Order by created date (most recent first)
+    shipments = shipments.order_by('-created_at')
+    
+    # Render table rows based on user role
+    if user.role == 'CLIENT':
+        html = render_to_string('partials/client_shipment_rows.html', {
+            'shipments': shipments,
+            'user': user
+        })
+    elif user.role == 'DRIVER':
+        html = render_to_string('partials/driver_shipment_rows.html', {
+            'shipments': shipments,
+            'user': user
+        })
+    elif user.role == 'ADMIN':
+        html = render_to_string('partials/admin_shipment_rows.html', {
+            'shipments': shipments,
+            'user': user
+        })
+    else:
+        html = '<tr><td colspan="10" class="text-center py-8">No access.</td></tr>'
+    
+    return JsonResponse({
+        'html': html,
+        'count': shipments.count(),
+        'search_query': search_query
     })
