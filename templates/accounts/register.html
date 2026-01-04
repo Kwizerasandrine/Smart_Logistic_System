@@ -11,22 +11,75 @@
                 {{ field.label }}
             </label>
             {{ field.errors }}
-            <input
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="{{ field.id_for_label }}" type="{{ field.field.widget.input_type }}" name="{{ field.name }}" {% if
-                field.value %}value="{{ field.value }}" {% endif %}>
+            {{ field }}
             {% if field.help_text %}
+            {% if field.name == 'password' or field.name == 'password1' %}
+            <ul class="text-xs italic font-bold mt-1 space-y-1">
+                <li id="req-similarity" class="text-red-600 decoration-red-600 transition-colors duration-200">• Your
+                    password can’t be too similar to your other personal information.</li>
+                <li id="req-length" class="text-red-600 decoration-red-600 transition-colors duration-200">• Your
+                    password must contain at least 8 characters.</li>
+                <li id="req-common" class="text-red-600 decoration-red-600 transition-colors duration-200">• Your
+                    password can’t be a commonly used password.</li>
+                <li id="req-numeric" class="text-red-600 decoration-red-600 transition-colors duration-200">• Your
+                    password can’t be entirely numeric.</li>
+            </ul>
+            {% else %}
             <p class="text-red-600 font-bold text-xs italic">{{ field.help_text }}</p>
+            {% endif %}
             {% endif %}
         </div>
         {% endfor %}
         <button type="submit"
-            class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline">
+            class="w-full bg-green-900 text-white font-bold py-2 px-4 rounded hover:bg-green-800 focus:outline-none focus:shadow-outline">
             Register
         </button>
     </form>
     <p class="mt-4 text-center">
-        Already have an account? <a href="{% url 'login' %}" class="text-blue-600 hover:underline">Login here</a>
+        Already have an account? <a href="{% url 'login' %}" class="text-green-900 font-bold hover:underline">Login
+            here</a>
     </p>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const passwordInput = document.querySelector('input[type="password"]');
+        const usernameInput = document.querySelector('input[name="username"]');
+
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function () {
+                const val = this.value;
+                const username = usernameInput ? usernameInput.value.toLowerCase() : '';
+
+                // 1. Length
+                updateReq('req-length', val.length >= 8);
+
+                // 2. Entirely numeric
+                updateReq('req-numeric', val.length > 0 && !/^\d+$/.test(val));
+
+                // 3. Similarity (contains username or too many repeating chars)
+                const similarityValid = val.length > 0 && (username === '' || !val.toLowerCase().includes(username));
+                updateReq('req-similarity', similarityValid);
+
+                // 4. Common password
+                const commonCheck = val.length > 0 &&
+                    !['password', '12345678', 'qwertyuiop', 'admin123'].includes(val.toLowerCase());
+                updateReq('req-common', commonCheck);
+            });
+        }
+
+        function updateReq(id, isValid) {
+            const el = document.getElementById(id);
+            if (el) {
+                if (isValid) {
+                    el.classList.remove('text-red-600');
+                    el.classList.add('text-green-600');
+                } else {
+                    el.classList.remove('text-green-600');
+                    el.classList.add('text-red-600');
+                }
+            }
+        }
+    });
+</script>
 {% endblock %}

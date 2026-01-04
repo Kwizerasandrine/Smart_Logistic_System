@@ -13,4 +13,4 @@ def register(request):
             return redirect('dashboard') # Redirect to dashboard after signup
     else:
         form = UserRegistrationForm()
-    return render(request, 'accounts/register_v3.html', {'form': form})
+    return render(request, 'accounts/register.html', {'form': form})

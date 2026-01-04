@@ -63,7 +63,7 @@ def dashboard(request):
         context['recent_shipments'] = Shipment.objects.all().order_by('-created_at')[:5]
         context['recent_users'] = User.objects.all().order_by('-date_joined')[:5]
         
-    return render(request, 'logistics/dashboard_v2.html', context)
+    return render(request, 'logistics/dashboard.html', context)
 
 @login_required
 def create_shipment(request):
