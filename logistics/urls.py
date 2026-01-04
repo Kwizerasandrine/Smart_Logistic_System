@@ -20,4 +20,5 @@ urlpatterns = [
     path('management/users/add/', views.add_user, name='add_user'),
     path('management/users/edit/<int:pk>/', views.edit_user, name='edit_user'),
     path('management/users/delete/<int:pk>/', views.delete_user, name='delete_user'),
+    path('filter-shipments/', views.filter_shipments, name='filter_shipments'),
 ]

@@ -7,6 +7,8 @@ from accounts.forms import UserRegistrationForm, UserEditForm, AdminUserCreation
 from .forms import ShipmentForm
 from django.shortcuts import get_object_or_404
 import uuid
+from django.http import JsonResponse
+from django.template.loader import render_to_string
 
 def is_admin(user):
     return user.is_authenticated and user.role == 'ADMIN'
@@ -250,3 +252,26 @@ def delete_user(request, pk):
         target_user.delete()
         messages.success(request, f"User {username} deleted successfully!")
     return redirect('admin_users')
+
+@login_required
+def filter_shipments(request):
+    status_filter = request.GET.get('status', 'all')
+    user = request.user
+    
+    if user.role == 'CLIENT':
+        shipments = Shipment.objects.filter(sender=user)
+    elif user.role == 'DRIVER':
+        shipments = Shipment.objects.filter(vehicle__driver=user)
+    else:
+        shipments = Shipment.objects.all()
+    
+    if status_filter != 'all':
+        shipments = shipments.filter(status=status_filter.upper())
+    
+    # Render table rows only
+    html = render_to_string('partials/shipment_rows.html', {'shipments': shipments, 'user': user})
+    
+    return JsonResponse({
+        'html': html,
+        'count': shipments.count()
+    })

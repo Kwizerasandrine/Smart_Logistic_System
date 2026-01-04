@@ -37,10 +37,29 @@
 <!-- Toolbar -->
 <div class="flex flex-col md:flex-row justify-between items-center mb-6 space-y-4 md:space-y-0">
     <div class="flex items-center space-x-4">
-        <div class="flex space-x-1">
-            <button class="bg-red-800 text-white px-4 py-2 rounded text-sm font-medium">All({{ shipments.count|default:"0" }})</button>
-            <button class="bg-white border text-gray-600 px-4 py-2 rounded text-sm hover:bg-gray-50">Pending</button>
-            <button class="bg-white border text-gray-600 px-4 py-2 rounded text-sm hover:bg-gray-50">Completed</button>
+        <div class="flex items-center space-x-4">
+            <div class="flex space-x-1">
+                <button 
+                    onclick="filterShipments('all', this)"
+                    class="filter-btn bg-red-800 text-white px-4 py-2 rounded text-sm font-medium" data-filter="all">
+                    All({{ shipments.count|default:"0" }})
+                </button>
+                <button 
+                    onclick="filterShipments('pending', this)"
+                    class="filter-btn bg-white border text-gray-600 hover:bg-gray-50 px-4 py-2 rounded text-sm" data-filter="pending">
+                    Pending
+                </button>
+                <button 
+                    onclick="filterShipments('delivered', this)"
+                    class="filter-btn bg-white border text-gray-600 hover:bg-gray-50 px-4 py-2 rounded text-sm" data-filter="delivered">
+                    Completed
+                </button>
+                <button 
+                    onclick="filterShipments('in_transit', this)"
+                    class="filter-btn bg-white border text-gray-600 hover:bg-gray-50 px-4 py-2 rounded text-sm" data-filter="in_transit">
+                    In Transit
+                </button>
+            </div>
         </div>
 
         <div class="flex items-center space-x-2 ml-4 text-gray-500">
@@ -673,4 +692,25 @@
 </script>
 
 {% endif %}
+
+<script>
+    function filterShipments(status, button) {
+        fetch(`{% url 'filter_shipments' %}?status=${status}`)
+            .then(response => response.json())
+            .then(data => {
+                // Update table body
+                document.querySelector('tbody').innerHTML = data.html;
+                
+                // Update active button styling
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('bg-red-800', 'text-white');
+                    btn.classList.add('bg-white', 'border', 'text-gray-600', 'hover:bg-gray-50');
+                });
+                button.classList.remove('bg-white', 'border', 'text-gray-600', 'hover:bg-gray-50');
+                button.classList.add('bg-red-800', 'text-white');
+            })
+            .catch(error => console.error('Error:', error));
+    }
+    </script>
+
 {% endblock %}
